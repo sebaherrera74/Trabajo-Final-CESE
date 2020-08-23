@@ -20,7 +20,7 @@ QueueHandle_t valorLOselec_queue;
 QueueHandle_t valorAnLeido;
 QueueHandle_t txQueue;
 
-void sem_queues_init(void);
+int sem_queues_init(void);
 
 
 
