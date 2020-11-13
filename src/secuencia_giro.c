@@ -64,7 +64,6 @@ void rotarBobinasCW(uint8_t velocidad,uint16_t cantPasos){
 
 	uint8_t aux=0;
 	uint16_t i;
-
 	for (i=0;i<cantPasos;i++){
 
 		aux=(i+4)%4;

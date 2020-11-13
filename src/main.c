@@ -3,6 +3,7 @@
 
 // Includes de FreeRTOS
 #include "debouncetecla.h"
+#include "funcionesaux.h"
 #include "sem_queues.h"
 #include "Tareas.h"
 #include "FreeRTOSConfig.h"
@@ -22,15 +23,18 @@ int main(void)
 	// ---------- CONFIGURACIONES ------------------------------
 	// Inicializar y configurar la plataforma
 	boardConfig();
-
 	uartConfig( UART_USB, 115200 );
-	uartWriteString( UART_USB,"Driver de Espectrofotometro \r\n" );
+	msjUart();
+
 
 	// Led para dar señal de vida
 	gpioWrite( LED3, ON );
 
 	// configura teclas para debounce
 	teclas_config();
+	inicializacion_gpio();
+	delayInaccurateMs(100);
+	posicion_cero();          //funcion bloqueante, posiciona el motor al arranque en la longitud de onda inicial
 
 	/* funcion que crea semaforos y colas a utilizar */
 	Error_creacion_Colas=sem_queues_init();

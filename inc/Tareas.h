@@ -31,7 +31,7 @@ extern "C" {
 #define RELACION_LOXCP     10     //define relacion entre longitud de onda y cantidad de pasos del motor a girar
 
 #define MSG_LO_SET   "La longitud de onda es :"
-#define  MSG_IN_ENS  "\nDESEA INICIAR ENSAYO S/N ? : \r\n" "S -> PRESIONE TEC3  : \r\n" "N-> Seleccione nuevamente\r\n""La longitud de onda seleccionada es :"
+#define  MSG_IN_ENS  "\nDESEA INICIAR ENSAYO S/N ? : \r\n" "S -> PRESIONE TEC1  : \r\n" "N-> Seleccione nuevamente\r\n""La longitud de onda seleccionada es :"
 
 #define MSG_Val_Analg "\n\n Valor de Voltaje es : "
 #define MSG_log_Posic "\n Longitud de Onda Posicionada es: "

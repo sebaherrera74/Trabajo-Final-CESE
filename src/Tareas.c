@@ -8,13 +8,10 @@
 
 /*=====[Inclusion de su propia cabecera]=====================================*/
 #include "Tareas.h"
-
 #include "ADS1015.h"
-#include "debouncetecla.h"
 #include "debouncetecla.h"
 #include "secuencia_giro.h"
 #include "sem_queues.h"
-#include "ADS1015.h"
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -177,9 +174,9 @@ void tarea_posicionamiento (void* taskParmPtr ){
 
 
             itoa( aux, uartBuff_pos, 10 );
-			xSemaphoreTake(mutex_impresion_1,portMAX_DELAY);  //coloco semaforo mutex
-			terminal_println(MSG_log_Posic); //envio a tarea de impresion valor de longitud de
-			terminal_puts(uartBuff_pos);           //posicionado
+			xSemaphoreTake(mutex_impresion_1,portMAX_DELAY);//coloco semaforo mutex
+			terminal_println(MSG_log_Posic);                //envio a tarea de impresion valor de longitud de
+			terminal_puts(uartBuff_pos);                    //posicionado
 			xSemaphoreGive( mutex_impresion_1);
 
 		}
