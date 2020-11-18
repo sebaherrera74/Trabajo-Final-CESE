@@ -14,7 +14,7 @@
 #include "sapi.h"
 
 
-#define CICLOS 300000
+#define CICLOS 100000
 
 /*=====[Inclusiones de dependencias de funciones privadas]===================*/
 
@@ -65,11 +65,15 @@ void msjUart(void){
 	uartWriteString(UART_USB,"Ensayo de Barrido de Longitud de onda presione TEC4 \r\n ");
 }
 
-
+bool_t estadoSwitch (void){
+	if (!gpioRead(GPIO5)){
+		return TRUE;
+	}
+	return FALSE;
+}
 
 
 //Funcion para inicialziar pines de GPIO de la edu-ciia
-
 void inicializacion_gpio(void){
    gpioConfig( GPIO1, GPIO_OUTPUT );
    gpioConfig( GPIO2, GPIO_OUTPUT );
@@ -79,14 +83,15 @@ void inicializacion_gpio(void){
 }
 
 
+//funcion inicial , en caso de falo de energia que me posiciona el motor en la longitud de onda cero
+//llega a cero una vez que el switch(GPIO5) se encuentre cerrrado
 void posicion_cero(void){
+
 	while(true){
-		if (!gpioRead(GPIO5)){
+		if (estadoSwitch()){
 			gpioWrite(LEDB,ON);
 			gpioWrite(LED1,OFF);
-
-			 rotarMotor_cero();
-
+            rotarMotor_cero();
 		}
 		else{
 			gpioWrite(LED1,ON);
@@ -103,16 +108,13 @@ void posicion_cero(void){
 
 /*=====[Implementaciones de funciones privadas]==============================*/
 static void rotarMotor_cero(void){
-
 	int i;
-
 
 	gpioWrite(GPIO1,1);
 	gpioWrite(GPIO2,0);
 	gpioWrite(GPIO3,0);
 	gpioWrite(GPIO4,0);
 	for (i=0;i<CICLOS;i++){
-
 	};
 
 	gpioWrite(GPIO1,0);
@@ -120,7 +122,6 @@ static void rotarMotor_cero(void){
 	gpioWrite(GPIO3,0);
 	gpioWrite(GPIO4,0);
 	for (i=0;i<CICLOS;i++){
-
 	};
 
 	gpioWrite(GPIO1,0);
@@ -128,7 +129,6 @@ static void rotarMotor_cero(void){
 	gpioWrite(GPIO3,1);
 	gpioWrite(GPIO4,0);
 	for (i=0;i<CICLOS;i++){
-
 	};
 
 	gpioWrite(GPIO1,0);
@@ -136,9 +136,6 @@ static void rotarMotor_cero(void){
 	gpioWrite(GPIO3,0);
 	gpioWrite(GPIO4,1);
 	for (i=0;i<CICLOS;i++){
-
 	};
-
-
 }
 

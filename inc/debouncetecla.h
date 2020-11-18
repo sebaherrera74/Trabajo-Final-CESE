@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 #define CANT_TECLAS	4
-#define tiempo_antirebote  40      // tiempo de 40 milisegundos
+#define TIEMPO_ANTIREBOTE  40      // tiempo de 40 milisegundos
 
 
 typedef enum {

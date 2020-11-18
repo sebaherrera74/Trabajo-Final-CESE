@@ -19,14 +19,28 @@ int sem_queues_init(void)
 	  return 1;
 	}
 
+   //------Creacion de semaforos Mutex--------
    mutex_impresion	=  xSemaphoreCreateMutex();
    mutex_impresion_1=  xSemaphoreCreateMutex();
 
-   if((mutex_impresion==NULL)||(mutex_impresion_1==NULL) )
+   if((mutex_impresion==NULL)||(mutex_impresion_1==NULL) )//verifico semaforos mutex
      {
-      printf ("Error al crear Semaforos");
+      printf ("Error al crear Semaforos Mutex ");
       return 1;
      }
+
+   //-----Creacion de Semaforos binarios--------
+
+
+   sem_inicio=xSemaphoreCreateBinary();
+   sem_inicio_barrido=xSemaphoreCreateBinary();
+   sem_final_barrido =xSemaphoreCreateBinary();
+
+   if((sem_inicio_barrido==NULL)||(sem_final_barrido==NULL)||(sem_inicio==NULL) ) //Verifico creacion de semaforos binarios
+        {
+         printf ("Error al crear Semaforos binarios ");
+         return 1;
+        }
    return 0;
 }
 

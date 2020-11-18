@@ -24,6 +24,8 @@ extern "C" {
 
 /*=====[Definition macros of public constants]===============================*/
 
+
+
 /*=====[Public function-like macros]=========================================*/
 
 /*=====[Definitions of public data types]====================================*/
@@ -35,6 +37,8 @@ extern "C" {
 void inicializar_bobinas();
 void rotarBobinasCCW(uint8_t velocidad,uint16_t cantPasos);
 void rotarBobinasCW(uint8_t velocidad,uint16_t cantPasos);
+void rotarBobinasCW_barrido(uint8_t velocidad,uint16_t cantPasos);
+
 void detenerMotor(void);
 
 /*=====[Prototypes (declarations) of public interrupt functions]=============*/

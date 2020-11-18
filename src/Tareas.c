@@ -17,12 +17,12 @@
 #include "task.h"
 #include "semphr.h"
 #include "sapi.h"
+#include "funcionesaux.h"
 
 
 DEBUG_PRINT_ENABLE;
 
 int16_t longitudOnda=0;
-uint8_t velocidad=10;
 
 /*=====Implementations of public functions]=================================*/
 // ------------Implementacion de Tareas----------------
@@ -106,23 +106,19 @@ void tarea_inicio ( void* taskParmPtr ){
 
 	while(TRUE) {
 		gpioToggle(LEDB);
-		if (xSemaphoreTake(tecla_config[2].sem_tec_pulsada ,portMAX_DELAY)){    // presiono tecla 3 para iniciar el ensayo
-
+		if (xSemaphoreTake(tecla_config[2].sem_tec_pulsada ,portMAX_DELAY)&&xSemaphoreTake( sem_final_barrido,portMAX_DELAY)){    // presiono tecla 1 para iniciar el ensayo
 			longitud_onda_seleccionada=longitudOnda;   // Asigno la longitud de onda a otra varible este valor enviara por uart
-
 			itoa( longitud_onda_seleccionada, uartBuff_ie, 10 ); // base 10 significa decimal
-
 			terminal_println(MSG_IN_ENS);  //encolo msje posible inicio y envio a  tarea de impresion
 			terminal_puts(uartBuff_ie);    //encolo longitud de onda seleccionada envio a  tarea de impresion
 
-			if(xSemaphoreTake(tecla_config[2].sem_tec_pulsada  ,5000/ portTICK_RATE_MS)){   //Presiono nuevamente TEC3 para comenzar ensayo
+			if(xSemaphoreTake(tecla_config[2].sem_tec_pulsada  ,5000/ portTICK_RATE_MS)){ //Presiono nuevamente TEC3 para comenzar ensayo
 				//gpioToggle(LED2);
 				xQueueSend(valorLOselec_queue, &longitud_onda_seleccionada, portMAX_DELAY);
 			}
-
 		}
-		vTaskDelayUntil(&xLastWakeTime, xPeriodicity ); //revisar esto me parece que no tiene
-		//que ser periodica
+
+		vTaskDelay(10/portTICK_RATE_MS);
 	}
 }
 
@@ -138,8 +134,6 @@ void tarea_posicionamiento (void* taskParmPtr ){
 	uint32_t aux=0;
 	static char uartBuff_pos[5];
 
-	inicializar_bobinas();                    //inicializo GPIO como salidas
-
 	while(TRUE){
 		if(xQueueReceive(valorLOselec_queue, &aux, portMAX_DELAY)){   //bloqueo hasta que me llegue inicio del ensayo
 
@@ -149,39 +143,25 @@ void tarea_posicionamiento (void* taskParmPtr ){
 
 			if (cantidadPasosActual>0){
 				cantidadPasos=cantidadPasosActual;
-				rotarBobinasCW(velocidad,cantidadPasos);
+				rotarBobinasCW(VELOCIDAD_ALTA,cantidadPasos);
 				cantidadPasos=cantidadPasosSP;
 			}
 
 			else {
 				cantidadPasos=cantidadPasos-cantidadPasosSP;
-				rotarBobinasCCW(velocidad,cantidadPasos);
+				rotarBobinasCCW(VELOCIDAD_ALTA,cantidadPasos);
 				cantidadPasos=cantidadPasosSP;
 			}
-			detenerMotor();           //freno motor
+			detenerMotor();                             //freno motor
 
-			//creo tarea de lectura ADC one-shot
-
-  BaseType_t res =xTaskCreate(tarea_lectura_ADC1015,                // Funcion de la tarea a ejecutar
-					(const char *)"lectura ADC ",   // Nombre de la tarea como String amigable para el usuario
-					configMINIMAL_STACK_SIZE*2,      // Cantidad de stack de la tarea
-					0,                              // Parametros de tarea
-					tskIDLE_PRIORITY+3,              // Prioridad de la tarea
-					0);                              // Puntero a la tarea creada en el sistema
-                  if (res == pdFAIL) {
-                	  ERROR_CREACION_TAREAS;
-                   }
-
-
-            itoa( aux, uartBuff_pos, 10 );
-			xSemaphoreTake(mutex_impresion_1,portMAX_DELAY);//coloco semaforo mutex
-			terminal_println(MSG_log_Posic);                //envio a tarea de impresion valor de longitud de
-			terminal_puts(uartBuff_pos);                    //posicionado
-			xSemaphoreGive( mutex_impresion_1);
-
-		}
-
-		vTaskDelay(10/portTICK_RATE_MS);
+		xSemaphoreGive(sem_inicio);                     //Disparo el semaforo para tomar lectura ADC
+		itoa( aux, uartBuff_pos, 10 );
+		xSemaphoreTake(mutex_impresion_1,portMAX_DELAY);//coloco semaforo mutex
+		terminal_println(MSG_log_Posic);                //envio a tarea de impresion valor de longitud de
+		terminal_puts(uartBuff_pos);                    //posicionado
+		xSemaphoreGive( mutex_impresion_1);
+	}
+	vTaskDelay(10/portTICK_RATE_MS);
 	}
 }
 
@@ -211,34 +191,70 @@ void tarea_lectura_ADC1015(void* taskParmPtr) {
 	float voltage_0=0;
 	static char result[10];
 
-	//  configuro resolucion
+	while(TRUE) {
+		if(xSemaphoreTake(sem_inicio,portMAX_DELAY)){
+			//  configuro resolucion
+			setGain(GAIN_TWOTHIRDS);    // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+			adc0 = readADC_SingleEnded(0);
+			//tomo lectura de un solo canal por ahora
+			//adc1 = readADC_SingleEnded(1);
+			//adc2 = readADC_SingleEnded(2);
+			//adc3 = readADC_SingleEnded(3);
+			//printf("AIN0: %i \r\n ",adc0);
+			voltage_0=(adc0*0.003);   //multiplico valor leido por la resolucion seleccionada arriba
+			floatToString( voltage_0, result, 8 );  //convierto valor flotante en string para visualizar
+			terminal_println(MSG_Val_Analg); //envio a tarea de impresion valor adc capturado
+			terminal_puts(result);
+			//solo muestro el AIN0 por ahora solo a los fines practicos
+			//printf("Valor de voltaje leido es : %s \r\n ",result);
+			//printf("AIN1: %i \r\n ",adc1);
+			//printf("AIN2: %i \r\n ",adc2);
+			//printf("AIN3: %i \r\n ",adc3);
+		}
+	}
+	vTaskDelete(NULL);
+}
 
-	setGain(GAIN_TWOTHIRDS);    // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+void tarea_barrido( void* taskParmPtr ){
+	/*taskENTER_CRITICAL();
+	printf("\r\n %s \r\n",pcTaskGetTaskName(NULL));
+	fflush( stdout );
+	taskEXIT_CRITICAL();
+    tTecla* config = (tTecla*) taskParmPtr;*/
 
-	adc0 = readADC_SingleEnded(0);
-	//tomo lectura de un solo canal por ahora
-	//adc1 = readADC_SingleEnded(1);
-	//adc2 = readADC_SingleEnded(2);
-	//adc3 = readADC_SingleEnded(3);
-	//printf("AIN0: %i \r\n ",adc0);
+	// Tarea periodica cada 10 ms
+	portTickType xPeriodicity =  40/ portTICK_RATE_MS;
+	portTickType xLastWakeTime = xTaskGetTickCount();
 
-	voltage_0=(adc0*0.003);   //multiplico valor leido por la resolucion seleccionada arriba
+	// ---------- REPETIR POR SIEMPRE --------------------------
+	while(TRUE) {
+        //Si se esta haciendo un ensayo de onda en una longitud determinada, ya el switch no va ha estar en la posicion cero
+		//GPIO5 False
+		if(xSemaphoreTake(tecla_config[3].sem_tec_pulsada ,10)){
+			terminal_println(MSG_DE_BARRIDO);
+            if(!estadoSwitch()){                      //Si el estado del switch esta en la posicion cero recien hago el barrido
+            	if(xSemaphoreTake(tecla_config[3].sem_tec_pulsada ,5000/ portTICK_RATE_MS)){
+            					vTaskDelay(10/portTICK_RATE_MS);
+            					rotarBobinasCW_barrido(VELOCIDAD_BARRIDO_1MINUTO,LONGITUD_FINAL); //Con 60 mseg demora 1 minuto exacto en hacer un barrido completo de acuerdo a requerimientos
+            					vTaskDelay(1000/portTICK_RATE_MS);
+            					rotarBobinasCCW(VELOCIDAD_ALTA,LONGITUD_FINAL);
+            					detenerMotor();
+            				}
+            }
+            else{                                  //si el switch no esta en cero lo posiciono en cero
+            	terminal_println(MSG_FUERADECERO);
+            	posicion_cero();
+            	}
+            }
 
-
-	floatToString( voltage_0, result, 8 );  //convierto valor flotante en string para visualizar
-
-	terminal_println(MSG_Val_Analg); //envio a tarea de impresion valor adc capturado
-	terminal_puts(result);
-
-	//solo muestro el AIN0 por ahora solo a los fines practicos
-
-	//printf("Valor de voltaje leido es : %s \r\n ",result);
-	//printf("AIN1: %i \r\n ",adc1);
-	//printf("AIN2: %i \r\n ",adc2);
-	//printf("AIN3: %i \r\n ",adc3);
+		xSemaphoreGive(sem_final_barrido);
+		vTaskDelay(10/portTICK_RATE_MS);
+	}
 
 	vTaskDelete(NULL);
 }
+
+
 
 
 // funciones auxiliares

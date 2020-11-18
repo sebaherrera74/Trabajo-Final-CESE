@@ -61,7 +61,7 @@ void actualizacionTecla(tTecla* config){
 		break;
 
 	case estado_falling :
-		if (config->contfalling <=tiempo_antirebote){
+		if (config->contfalling <=TIEMPO_ANTIREBOTE){
 			if (!gpioRead(config->tecla)){
 				config->estadoTecla=estado_down;
 				/*accion del evento*/
@@ -84,7 +84,7 @@ void actualizacionTecla(tTecla* config){
 		break;
 
 	case estado_raising:
-		if (config->contrising<=tiempo_antirebote){
+		if (config->contrising<=TIEMPO_ANTIREBOTE){
 			if (gpioRead(config->tecla)){
 				config->estadoTecla=estado_up;
 				/*accion del evento*/

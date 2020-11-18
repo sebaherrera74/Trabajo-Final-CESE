@@ -12,6 +12,7 @@
 
 #ifndef _FUNCIONESAUX_H_
 #define _FUNCIONESAUX_H_
+#include "sapi.h"
 
 /*=====[Inclusiones de dependencias de funciones publicas]===================*/
 
@@ -44,6 +45,7 @@ extern "C" {
 /*=====[Prototipos de funciones publicas]====================================*/
 
 void msjUart(void);
+bool_t estadoSwitch(void);
 void inicializacion_gpio(void);
 void posicion_cero(void);
 

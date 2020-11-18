@@ -23,16 +23,21 @@
 extern "C" {
 #endif
 
-#define LONGITUD_INICIAL   0       //longitud inicial de LOngitud de onda
-#define LONGITUD_FINAL    1000     //longitud final    de LOngitud de onda
-#define TIEMPO_UP         1000    //tiempo de lectura de pulsacion de tecla si presiono por mas de 1 seg
-#define CAMBIO_ESCALA      100    // cambia escala de valor a setear de LOngitud de onda
+#define LONGITUD_INICIAL          0       //longitud inicial de LOngitud de onda
+#define LONGITUD_FINAL            1000    //longitud final    de LOngitud de onda
+#define TIEMPO_UP                 1000    //tiempo de lectura de pulsacion de tecla si presiono por mas de 1 seg
+#define CAMBIO_ESCALA             100     // cambia escala de valor a setear de LOngitud de onda
+#define VELOCIDAD_BARRIDO_1MINUTO 60      //Velocidades del motor paso a paso
+#define VELOCIDAD_BAJA            30
+#define VELOCIDAD_MEDIA           20
+#define VELOCIDAD_ALTA            10
+#define VELOCIDAD_MAXIMA          5
+#define RELACION_LOXCP            10     //define relacion entre longitud de onda y cantidad de pasos del motor a girar
 
-#define RELACION_LOXCP     10     //define relacion entre longitud de onda y cantidad de pasos del motor a girar
-
-#define MSG_LO_SET   "La longitud de onda es :"
+#define  MSG_LO_SET   "La longitud de onda es :"
 #define  MSG_IN_ENS  "\nDESEA INICIAR ENSAYO S/N ? : \r\n" "S -> PRESIONE TEC1  : \r\n" "N-> Seleccione nuevamente\r\n""La longitud de onda seleccionada es :"
-
+#define MSG_DE_BARRIDO  "Desea hacer un ensayo de barrido ?\r\n" "Si ->presione TEC4\r\n "
+#define MSG_FUERADECERO "El motor no esta posicionado en la longitud de onda cero"
 #define MSG_Val_Analg "\n\n Valor de Voltaje es : "
 #define MSG_log_Posic "\n Longitud de Onda Posicionada es: "
 #define ERROR_CREACION_TAREAS    printf("ERROR AL CREAR TAREA")
@@ -57,7 +62,7 @@ void tarea_inicio ( void* taskParmPtr );
 void msjexuart( void* taskParmPtr );
 void tarea_posicionamiento (void* taskParmPtr );
 void tarea_lectura_ADC1015(void* taskParmPtr);
-
+void tarea_barrido( void* taskParmPtr );
 
 /*=====[Prototypes (declarations) of public interrupt functions]=============*/
 

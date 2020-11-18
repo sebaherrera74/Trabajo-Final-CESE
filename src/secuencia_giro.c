@@ -10,12 +10,12 @@
 
 /*=====[Inclusion de su propia cabecera]=====================================*/
 #include "secuencia_giro.h"
-
 #include "FreeRTOSConfig.h"
 #include "Tareas.h"
 #include "FreeRTOSConfig.h"
 #include "sapi.h"
 #include "task.h"
+#include "sem_queues.h"
 //#include <dependencia.h>
 
 /*=====[Macros de definicion de constantes privadas]=========================*/
@@ -39,12 +39,32 @@
 
 /*=====[Definiciones de Variables globales publicas]=========================*/
 
-uint8_t secuenciaPasos[4][4]={
+//Secuencia de paso simple
+uint8_t secuenciaPasosSimple[4][4]={
+		{1,0,0,0},
+		{0,1,0,0},
+		{0,0,1,0},
+		{0,0,0,1}
+};
+//Seceuncia de paso normal
+uint8_t secuenciaPasosNormal[4][4]={
 		{1,1,0,0},
 		{0,1,1,0},
 		{0,0,1,1},
 		{1,0,0,1}
 };
+//Secuencia de medio paso
+uint8_t secuenciaPasosMediopaso[8][4]={
+		{1,0,0,0},
+		{1,1,0,0},
+		{0,1,0,0},
+		{0,1,1,0},
+		{0,0,1,0},
+		{0,0,1,1},
+		{0,0,0,1},
+		{1,0,0,1}
+};
+
 /*=====[Definiciones de Variables globales privadas]=========================*/
 
 /*=====[Prototipos de funciones privadas]====================================*/
@@ -60,39 +80,52 @@ void inicializar_bobinas(){
 }
 
 
+//Secuencia en sentido de las agujas del reloj
 void rotarBobinasCW(uint8_t velocidad,uint16_t cantPasos){
 
 	uint8_t aux=0;
 	uint16_t i;
-	for (i=0;i<cantPasos;i++){
-
+	for (i=cantPasos;i>0;i--){
 		aux=(i+4)%4;
-		gpioWrite(GPIO1,secuenciaPasos[aux][0]);
-		gpioWrite(GPIO2,secuenciaPasos[aux][1]);
-		gpioWrite(GPIO3,secuenciaPasos[aux][2]);
-		gpioWrite(GPIO4,secuenciaPasos[aux][3]);
+		gpioWrite(GPIO1,secuenciaPasosSimple[aux][0]);
+		gpioWrite(GPIO2,secuenciaPasosSimple[aux][1]);
+		gpioWrite(GPIO3,secuenciaPasosSimple[aux][2]);
+		gpioWrite(GPIO4,secuenciaPasosSimple[aux][3]);
 		vTaskDelay(velocidad);
 
 	}
 }
 
-
+//Seceuncia en sentido contrario a las agujas del reloj
 void rotarBobinasCCW(uint8_t velocidad,uint16_t cantPasos){
 	uint8_t aux=0;
 	uint16_t i;
 
-	for (i=cantPasos;i>0;i--){
+	for (i=0;i<cantPasos;i++){
 		aux=(i+4)%4;
 
-		gpioWrite(GPIO1,secuenciaPasos[aux][0]);
-		gpioWrite(GPIO2,secuenciaPasos[aux][1]);
-		gpioWrite(GPIO3,secuenciaPasos[aux][2]);
-		gpioWrite(GPIO4,secuenciaPasos[aux][3]);
+		gpioWrite(GPIO1,secuenciaPasosSimple[aux][0]);
+		gpioWrite(GPIO2,secuenciaPasosSimple[aux][1]);
+		gpioWrite(GPIO3,secuenciaPasosSimple[aux][2]);
+		gpioWrite(GPIO4,secuenciaPasosSimple[aux][3]);
 		vTaskDelay(velocidad);
-
 	}
+}
 
 
+//Secuencia de giro con un semaforo para disparar adquisicion de datos adc
+void rotarBobinasCW_barrido(uint8_t velocidad,uint16_t cantPasos){
+	uint8_t aux=0;
+	uint16_t i;
+	for (i=cantPasos;i>0;i--){
+		aux=(i+4)%4;
+		gpioWrite(GPIO1,secuenciaPasosSimple[aux][0]);
+		gpioWrite(GPIO2,secuenciaPasosSimple[aux][1]);
+		gpioWrite(GPIO3,secuenciaPasosSimple[aux][2]);
+		gpioWrite(GPIO4,secuenciaPasosSimple[aux][3]);
+		vTaskDelay(velocidad);
+		xSemaphoreGive(sem_inicio);
+	}
 }
 
 void detenerMotor(void){
